@@ -163,3 +163,48 @@ services:
 ```
 
 [version 3](https://docs.docker.com/compose/compose-file/compose-file-v3/)에서는 더 많은 것들이 바뀌었으니 참고
+
+## Docker Storage
+
+![images02](./images/images02.png)
+
+도커는 이미지를 빌드할 때 layer 쌓는 구조로 이미지를 빌드한다. 이전에 이미 빌드한 적이 있는 layer라면 캐시에 저장해두었다가 다른 이미지를 빌드할 때 해당 레이어를 사용함으로써 시간과 저장공간을 효율적으로 사용할 수 있다.
+
+### volumes
+
+Docker는 따로 볼륨을 지정하지 않으면 컨테이너가 종료되면서 데이터도 함께 사라진다. 따라서 영구적인 데이터 관리를 위해서는 볼륨을 따로 설정해야 한다.
+
+`docker volume create [volume_name]` 명령어로 볼륨을 생성할 수 있다. 해당 볼륨은 `/var/lib/docker/volumes` 의 하위 폴더에 생성된다.
+
+생성된 볼륨은 `docker run -v [volume_name]:[mount_dir]`과 같이 `-v` flag를 이용하여 해당 컨테이너에 마운트할 수 있다. 이렇게 생성된 볼륨을 마운트하면 컨테이너가 종료되어도 여전히 유지된다.
+
+`-v` flag는 Docker 볼륨 이외에 local directory에도 마운트를 할 수 있다. `volume_name` 대신에 마운트할 local directory 위치를 입력하면 된다. 이렇게 마운트 하는 방법을 바인드 마운트라고 한다.
+
+![images03](./images/images03.png)
+### network
+
+Docker는 기본적으로 `Bridge, none, host` 세 개의 network를 설치한다.
+
+![images04](./images/images04.png)
+
+- Bridge : 172.17 로 시작하는 Docker Host를 통해 컨테이너와 통신하는 모드
+- none : 어떤 외부 접근이나 내부 컨테이너 간 통신도 허용하지 않는 모드
+- host : Docker Host를 Network로 사용하는 모드. 중복된 포트의 컨테이너를 만들 수 없다.
+
+기본적으로 Docker의 bridge network는 하나만 있다. `docker network` 명령어를 이용하여 여러 개의 network를 생성할 수 있다.
+
+![images05](./images/images05.png)
+
+Docker 내부에서 컨테이너 사이에 통신이 필요할 때, 내장된 DNS 서버를 이용하여 컨테이너의 이름을 이용하여 통신할 수 있다.
+
+![images06](./images/images06.png)
+
+```bash
+# Docker network create example
+
+docker network create \
+--driver bridge \
+--subnet 182.18.0.1/24 \
+--gateway 182.18.0.1 \
+wp-mysql-network
+```
